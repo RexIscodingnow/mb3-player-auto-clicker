@@ -1,0 +1,1 @@
+# mb3-player-auto-clicker
