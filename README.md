@@ -13,5 +13,8 @@ Using selenium of Python module to operate Previous, Next, Play/Pause Button.
        又加上 *懶得切到原網頁* 切換歌曲，所以寫了這個廢東西
 
 結論: 科技帶來的便利性，來自於人類的懶惰
-
         -- by 某名人/偉人說過 (應該......)
+
+# TODO
+keyboard listener
+GUI (probably todo)
