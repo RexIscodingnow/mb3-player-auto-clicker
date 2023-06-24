@@ -55,13 +55,13 @@ def initial():
     driver.get(url)
     driver.maximize_window()
 
-    time.sleep(2.5)
+    time.sleep(3.5)
     
     # class name: css-1wglmvy e1eiglht2
     firstSong_element = driver.find_element(By.CLASS_NAME, "exwa4n00")
     firstSong_element.click()
 
-    time.sleep(1)
+    time.sleep(2)
     
     element = driver.find_element(By.CLASS_NAME, "css-1mw6l2m")
     element.click()
