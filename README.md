@@ -15,6 +15,17 @@ Using selenium of Python module to operate Previous, Next, Play/Pause Button.
 結論: 科技帶來的便利性，來自於人類的懶惰
         -- by 某名人/偉人說過 (應該......)
 
+# How to use it
+1. Download module: selenium
+    ```
+    >>> pip install selenium
+    ```
+2. run
+    ```
+    >>> python mb3_clicker.py
+    ```
+
 # TODO
-keyboard listener<br/>
-GUI (probably todo)
+1. keyboard listener
+2. GUI (probably todo)
+3. 打包成 .exe 執行檔
