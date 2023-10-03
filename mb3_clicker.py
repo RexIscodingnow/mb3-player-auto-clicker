@@ -42,12 +42,8 @@ MSG = [
 ]
 
 
-# 設置 Chrome Driver 的檔案路徑
-# chrome_options = Options()
-# chrome_options.chrome_executable_path = "C:/Users/User/OneDrive/文件/python/學習範例/selenium/chromedriver.exe"
-# driver = webdriver.Chrome(options=chrome_options)
 
-driver = webdriver.Chrome()
+driver = webdriver.Edge()
 
 
 def initial():
@@ -58,7 +54,7 @@ def initial():
     time.sleep(3.5)
     
     # class name: css-1wglmvy e1eiglht2
-    firstSong_element = driver.find_element(By.CLASS_NAME, "exwa4n00")
+    firstSong_element = driver.find_element(By.CLASS_NAME, "css-xixs5t")
     firstSong_element.click()
 
     time.sleep(2)
