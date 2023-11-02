@@ -17,6 +17,7 @@ import threading as td
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import WebDriverException
 
 
 """
@@ -71,26 +72,43 @@ class Clicker:
             first_song = self.driver.find_element(By.CLASS_NAME, "css-xixs5t")
             first_song.click()
 
-            # self.reset_times = 0
+            self.reset_times = 0
 
-        except:
-            pass
-            # msg = "1. 按下 R 重新開啟\n" + "2. 按下 M 更改網址"
-            # main_window.info_song.set(msg)
+        except WebDriverException as we:
+            self.connect_error()
 
-            # # TODO: To send request or modify URL if recursive less than equal 3 times.
-            # if self.reset_times >= 3:
-            #     self.reset_times = 0
-            #     return
+
+    def connect_error(self):
+        # TODO: 斷網處理
+        if self.reset_times >= 3:
+            msg = "以達上限次數 (3)\n\n按下任意鍵繼續"
+            main_window.info_song.set(msg)
+            self.reset_times = 0
             
-            # else:
-            #     while not keyboard.read_event() or main_window.cmd_entry.get(): pass
+            while not keyboard.read_event(): pass
+            return
+        
+        else:
+            self.reset_times += 1
+            
+            msg = "1. 按下 R 重新開啟\n" + "2. 按下 M 更改網址"
+            main_window.info_song.set(msg)
 
-            #     self.reset_times += 1
+            while (not keyboard.is_pressed("enter") and 
+                    main_window.cmd_entry.get().lower() not in ['m', 'r']): pass
+            
+            command = main_window.cmd_entry.get().lower()
+            
+            if command == 'm':
+                time.sleep(0.09)
+                url = main_window.cmd_entry.get()
+                while not keyboard.is_pressed("enter") and not url:
+                    url = main_window.cmd_entry.get()
 
-            #     if keyboard.is_pressed("r") and main_window.cmd_entry.get() == " ":
-            #         self.init_process()
+                self.changeURL(url)
 
+            elif command == 'r':
+                self.init_process()
 
     # ==================================================================
     # ==================================================================
@@ -274,14 +292,13 @@ def read_keyboard():
 if __name__ == "__main__":
     main_window = MainWindow()
     clicker = Clicker(url)
-
     clicker.init_process()
+
     info = PLAYLIST_NAME + f"{clicker.get_listTitle()}\n" + SONG_NAME + f"\n{clicker.get_songTitle()}"
     main_window.info_song.set(info)
 
     running = True
     read_key = td.Thread(target=read_keyboard, name="read keyboard")
-
     main_window.protocol("WM_DELETE_WINDOW", clicker.exit)
 
     read_key.start()
