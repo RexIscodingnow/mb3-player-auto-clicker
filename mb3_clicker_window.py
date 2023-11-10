@@ -101,26 +101,26 @@ class Clicker:
             msg = "1. 輸入 R 重新開啟\n" + "2. 輸入 M 更改網址\n" + "或關掉重開一遍"
             main_window.info_song.set(msg)
 
-            # command = ""
+            command = ""
 
-            # while True:
-            #     if ((keyboard.is_pressed("enter") )
-            #         and command.lower() in ['m', 'r']):
-            #         main_window.cmd_entry.delete(0, "end")
-            #         break
+            while True:
+                if ((keyboard.is_pressed("enter") )
+                    and command.lower() in ['m', 'r']):
+                    main_window.cmd_entry.delete(0, "end")
+                    break
 
-            #     command = main_window.cmd_entry.get().lower()
+                command = main_window.cmd_entry.get().lower()
             
-            # if command == 'm':
-            #     time.sleep(0.09)
-            #     url = ""
+            if command == 'm':
+                time.sleep(0.09)
+                url = ""
                 
-            #     self.reset_times += 1
-            #     self.changeURL(url)
+                self.reset_times += 1
+                self.changeURL(url)
 
-            # elif command == 'r':
-            #     self.reset_times += 1
-            #     self.init_process()
+            elif command == 'r':
+                self.reset_times += 1
+                self.init_process()
 
 
     # ==================================================================
