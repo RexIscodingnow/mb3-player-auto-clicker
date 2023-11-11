@@ -94,7 +94,6 @@ class Clicker:
             main_window.info_song.set(msg)
             self.reset_times = 0
             
-            time.sleep(1)
             while not keyboard.read_event(): pass
             return
         
