@@ -67,7 +67,7 @@ SONG_NAME = "正在播放:"
 class Clicker:
     def __init__(self, url: str = "") -> None:
         self.url = url
-        self.reset_times = 0
+        self.reset_times = 0   # recursion times
         self.driver = webdriver.Edge()
 
 
@@ -86,57 +86,81 @@ class Clicker:
             self.reset_times = 0
 
         except:
-            # FIXME: 連接問題
             # self.connect_error()
             # pass
             raise WebDriverException("An error occurred when trying to open the playlist.\nPlease Check the PlayList URL!")
 
 
-    def connect_error(self, cmd: str = ""):
-        # FIXME: 斷網處理 & 異常捕捉
+    def connect_error(self, event: td.Event):        
+        # FIXME: 斷網處理
         if self.reset_times >= 3:
             msg = "以達上限次數 (3)\n\n按下任意鍵離開"
             main_window.info_song.set(msg)
+            
             self.reset_times = 0
             
             time.sleep(0.5)
-            while not keyboard.read_event(): pass
+            while not keyboard.read_event() or not main_window.is_pressed: pass
             return
         
         else:
-            msg = "1. 輸入 R 重新開啟\n" + "2. 輸入 M 更改網址\n" + "或關掉重開一遍"
+            self.reset_times += 1
+            print(self.reset_times)
+            
+            msg = "1. 輸入 R 重新載入原網址\n" + "2. 輸入 M 更改網址\n" + "或關掉重開一遍"
             main_window.info_song.set(msg)
 
-            time.sleep(1)
+            time.sleep(0.5)
 
-            while cmd not in ['r', 'm'] and not main_window.is_pressed:
-                pass
-            #     cmd = main_window.cmd_entry.get().lower()
-            #     msg = "1. 輸入 R 重新開啟\n" + "2. 輸入 M 更改網址\n" + f"或關掉重開一遍\n{main_window.is_clicked}"
-            #     main_window.info_song.set(msg)
+            cmd = ""
 
-            self.reset_times += 1
+            while not event.is_set():
+                if cmd in ['r', 'm']:
+                    if main_window.is_pressed or keyboard.is_pressed("enter"):
+                        main_window.cmd_entry.delete(0, "end")
+                        break
+
+                cmd = main_window.cmd_entry.get().lower()
 
             if cmd == 'r':
-                self.init_process()
+                main_window.info_song.set("重新載入原網址\n請等待 2 秒")
+
+                time.sleep(2)
+
+                try:
+                    self.init_process()
+                    self.reset_times = 0
+
+                except WebDriverException as we:
+                    self.connect_error(err_event)
             
+            # FIXME: modify url
             elif cmd == 'm':
-                pass
+                main_window.info_song.set("輸入網址")
 
-            # if cmd == 'm':
-            #     time.sleep(0.09)
-            #     url = ""
+                time.sleep(1)
+
+                url = ""
                 
-            #     self.changeURL(url)
+                # while not keyboard.is_pressed("enter") or not main_window.is_pressed:
+                while not event.is_set():
+                    if main_window.is_pressed or keyboard.is_pressed("enter"):
+                        break
+                    
+                    url = main_window.cmd_entry.get()
 
-            # elif command == 'r':
-            #     self.reset_times += 1
-            #     self.init_process()
+                main_window.cmd_entry.delete(0, "end")
+
+                try:
+                    self.changeURL(url)
+                
+                except WebDriverException as we:
+                    self.connect_error(error_handle)
 
 
     # ==================================================================
     # ==================================================================
-
+ 
     def get_listTitle(self) -> str:
         try:
             playlist = self.driver.find_element(By.CLASS_NAME, "e1oiqyjt1")
@@ -192,15 +216,21 @@ class Clicker:
     def changeURL(self, url: str):
         if CHECK_URL not in url:
             main_window.info_song.set("網址錯誤，要帶有:\n" + f"{CHECK_URL}\n\n" + "按下任意鍵繼續")
+            
             time.sleep(1)
-            while not keyboard.read_event(): pass
+            while not keyboard.read_event() or not main_window.is_pressed: pass
             return
         
         element = self.driver.find_element(By.CLASS_NAME, "css-fc2je9")
         element.click()
 
-        self.url = url
-        self.init_process()
+        try:
+            self.url = url
+            self.init_process()
+            self.reset_times = 0
+
+        except WebDriverException as we:
+            raise WebDriverException("An error occurred when change new URL (another Playlist)")
 
 
 class Window(tk.Tk):
@@ -216,7 +246,7 @@ class Window(tk.Tk):
 
         self.__flag = False
         self.is_pressed = False
-        self.info_song = tk.StringVar()
+        self.info_song = tk.StringVar()   # 歌曲資訊
 
         # ==================================================
         # ==================================================
@@ -317,9 +347,19 @@ class Window(tk.Tk):
             # if cmd.lower() == "e" and self.flag == False:
             #     clicker.exit()
 
-        except Exception as e:
+        except WebDriverException as we:
             # print(e)
-            clicker.connect_error(cmd)
+            
+            # FIXME: 創建 & 卡頓
+            error_handle = td.Thread(target=clicker.connect_error, args=(err_event,), name="error handle")
+            error_handle.start()
+            error_handle.join()
+
+            # time.sleep(0.1)
+
+            # # restart read_key() for new thread
+            # event.clear()
+            # print(event.is_set())
 
 
 def read_keyboard(stop_event: td.Event):
@@ -333,9 +373,15 @@ def read_keyboard(stop_event: td.Event):
             main_window.flag = False
 
 
-def exit_exec(event: td.Event):
-    event.set()
+def exit_exec(keyboard_event: td.Event, err_event: td.Event):
+    keyboard_event.set()
     
+    if error_handle.is_alive():
+        if err_event.is_set():
+            err_event.set()
+
+        error_handle.join()
+
     # 處理執行緒死鎖
     # 避免 read_key 加入到主執行緒
     if read_key.is_alive() and read_key is not td.current_thread():
@@ -349,20 +395,26 @@ def exit_exec(event: td.Event):
 if __name__ == "__main__":
     main_window = Window()
     clicker = Clicker(url)
+
+    err_event = td.Event()
+    keyboard_event = td.Event()
+    error_handle = td.Thread(target=clicker.connect_error, args=(err_event,), name="error handle")
+    # main_window.tk.call("wm", "iconphoto", main_window._w, tk.PhotoImage(file="mouse.png"))
     
     try:
         clicker.init_process()
     
-    except:
-        clicker.connect_error()
+    except WebDriverException as we:
+        error_handle.start()
 
     finally:
-        event = td.Event()
-        read_key = td.Thread(target=read_keyboard, args=(event,), name="read keyboard")
+        read_key = td.Thread(target=read_keyboard, args=(keyboard_event,), name="read keyboard")
         read_key.start()
 
         main_window.exec_btn.bind("<Button-1>", main_window.clicked)
         main_window.exec_btn.bind("<ButtonRelease-1>", main_window.released)
-        main_window.protocol("WM_DELETE_WINDOW", lambda: exit_exec(event))
+        
+        # 
+        main_window.protocol("WM_DELETE_WINDOW", lambda: exit_exec(keyboard_event, err_event))
         main_window.update_info()
         main_window.mainloop()
