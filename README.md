@@ -19,29 +19,35 @@ Using selenium to operate Previous, Next, Play/Pause Button.
 
 # How to use it
 
-If you haven't installed it, download the `Selenium`.
+Install the `Selenium`, if you haven't installed it.
 ```
->>> pip install selenium
+pip install selenium
 ```
 
 
 * Command prompt ver.
 1. run
     ```
-    >>> python mb3_clicker.py
+    python mb3_clicker.py
     ```
 
 * GUI ver.
-1. Change the directory
+1. Install `keyboard`
+
+```
+pip install keyboard
+```
+
+2. Change the directory
 
     ```
-    >>> cd mb3_clicker_win
+    cd mb3_clicker_win
     ```
 
-2. run
+3. Run
 
     ```
-    >>> python mb3_clicker_window.py
+    python mb3_clicker_window.py
     ```
 
 # TODO
