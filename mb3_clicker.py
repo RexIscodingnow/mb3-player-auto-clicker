@@ -35,91 +35,87 @@ CMD_MSG = "cmd (輸入命令選項): 1. 前一首  2. 播放/暫停  3. 下一�
           "S. 顯示目前的播放清單網址  M. 更改播放清單網址\n" + \
           ": "
 MSG = [
-    f"網址: {url}\n",
+    "網址:",
     "輸入播放清單網址",
     "確認使用(Y/N)\n",
     ": "
 ]
 
 
-
 driver = webdriver.Edge()
 
 
-def initial():
-    global url
+def initial(url: str):
+    # global url
     driver.get(url)
-    driver.maximize_window()
 
     time.sleep(3.5)
-    
+
     # class name: css-1wglmvy e1eiglht2
-    firstSong_element = driver.find_element(By.CLASS_NAME, "css-xixs5t")
+    firstSong_element = driver.find_element(By.CLASS_NAME, 'css-1x7tk1n')
     firstSong_element.click()
 
-    time.sleep(2)
-    
-    element = driver.find_element(By.CLASS_NAME, "css-1mw6l2m")
-    element.click()
 
-
-init = True
+initial(url)
 
 while True:
-    if init:
-        initial()
-        init = False
+    cmd = input(CMD_MSG).strip()
 
-    cmd = input(CMD_MSG)
-
-    if "1" in cmd:
+    if cmd == "1":
         # 前一首
         # class name: MuiBox-root css-qorinj
-        element = driver.find_element(By.CLASS_NAME, "css-qorinj")
+        # element = driver.find_element(By.CLASS_NAME, "css-qorinj")
+        element = driver.find_element(By.XPATH, "//*[@id=\"__next\"]/div[1]/div/div/div[2]/div[1]")
         element.click()
 
-    if "2" in cmd:
+    if cmd == "2":
         # 播放/暫停
         # class name: MuiBox-root css-1mw6l2m
-        element = driver.find_element(By.CLASS_NAME, "css-1mw6l2m")
+        # element = driver.find_element(By.CLASS_NAME, "css-1mw6l2m")
+        element = driver.find_element(By.XPATH, "//*[@id=\"__next\"]/div[1]/div/div/div[2]/div[2]")
         element.click()
 
-    if "3" in cmd:
+    if cmd == "3":
         # 下一首
         # class name: MuiBox-root css-1n4h12s
-        element = driver.find_element(By.CLASS_NAME, "css-1n4h12s")
+        # element = driver.find_element(By.CLASS_NAME, "css-1n4h12s")
+        element = driver.find_element(By.XPATH, "//*[@id=\"__next\"]/div[1]/div/div/div[2]/div[3]")
         element.click()
 
-    if "4" in cmd:
+    if cmd == "4":
         print("點擊器 關閉囉!")
         break
 
-    if "S".lower() in cmd.lower():
-        print(MSG[0])
+    if cmd.lower() == "s":
+        print(f"{MSG[0]} {url}")
 
-    if "M".lower() in cmd.lower():
+    if cmd.lower() == "m":
         print(MSG[1])
-        new_url = input(MSG[3])
+        new_url = input(MSG[3]).strip()
         
-        if new_url and CHECK_URL in new_url:
-            use = input(MSG[2] + MSG[3])
-            
-            if "Y".lower() in use:
-                # 播放視窗的關閉按鈕 (在右下播放視窗，角有一個 x 符號)
+        if not new_url or CHECK_URL not in new_url:
+            print("錯誤網址")
+            continue
+
+        while True:
+            op = input(MSG[2] + MSG[3]).lower().strip()
+            if op == "y":
+                # 播放視窗的關閉按鈕 (在右下播放視窗，右下角有一個 x 符號)
                 # class name: css-fc2je9
+                url = new_url
                 element = driver.find_element(By.CLASS_NAME, "css-fc2je9")
                 element.click()
-                url = new_url
-                init = True
                 time.sleep(0.5)
+                initial(new_url)
+                break
 
-        else:
-            print("錯誤網址")
+            elif op == 'n':
+                print("不改動播放清單")
+                break
 
     if "cls" in cmd.lower():
         # 清除視窗
         os.system("cls")
-
 
 
 driver.close()
