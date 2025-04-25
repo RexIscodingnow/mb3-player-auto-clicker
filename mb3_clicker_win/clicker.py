@@ -1,3 +1,11 @@
+"""
+Todo list
+    
+TODO: Add 3 exception handlers to Clicker.init_process().
+
+"""
+
+
 import time
 from urllib.parse import urlparse
 from urllib.error import URLError
@@ -12,25 +20,44 @@ from selenium.common.exceptions import (
 )
 
 
+WAIT_LOADING_TIME = 5
+
+PREFIX_URL = "https://www.mbplayer.com/list/"
+PARSED_PREFIX_URL = urlparse(PREFIX_URL)
+
+
+class InvalidURLError(ValueError):
+    """
+    Raised when the URL format is invalid or does not match the required pattern.
+    """
+    pass
+
+
 class Clicker:
     def __init__(self) -> None:
         self.url = ""
         self.driver = webdriver.Edge()
 
 
-    def init_process(self, url) -> None:
+    def init_process(self, url: str) -> None:
         if not url:
-            # raise URLError("URLError occurred: ")
-            return
+            raise ValueError("The `url` must not be empty.")
 
         try:
-            self.url = url
+            parse_result = urlparse(url)
+            if (PARSED_PREFIX_URL.netloc != parse_result.netloc) or \
+                (PARSED_PREFIX_URL.path not in parse_result.path):
+                raise InvalidURLError(f"Invalid URL: expected the `url` to match the '{PREFIX_URL}' pattern.")
+
             self.driver.get(url)
-            time.sleep(5)   # Wait for the page to finish loading
-            
+            time.sleep(WAIT_LOADING_TIME)   # Wait for the page to finish loading
+
             first_song = self.driver.find_element(By.CLASS_NAME, 'css-1x7tk1n')
             first_song.click()
-            self.driver.minimize_window()
+
+            # Wait for `first_song.click()` to complete before minimizing the browser window
+            time.sleep(2)
+            self.minimize_window()
 
         except NoSuchElementException as e:
             print(e.msg)
@@ -41,6 +68,9 @@ class Clicker:
         except TimeoutError as e:
             print(e)
 
+
+    def minimize_window(self) -> None:
+        self.driver.minimize_window()
 
     # ==================================================================
     # ==================================================================
@@ -57,7 +87,7 @@ class Clicker:
 
     def get_song_title(self) -> str:
         try:
-            cut_len = 20
+            cut_len = 30
             new_title = ""
             song_display = self.driver.find_element(By.TAG_NAME, "iframe")
             title = song_display.get_attribute("title")
@@ -132,12 +162,21 @@ if __name__ == '__main__':
     # url = "https://www.mbplayer.com/list/198715305"
     # url = "https://www.mbplayer.com/list/RDfNEcOxsScls"
 
+    print("opening clicker ...")
+
     clicker = Clicker()
     clicker.init_process(url)
 
+    print("try `help` to show all command")
+
     cmd = ""
 
-    while cmd != "cancel":
+    while True:
+        title = clicker.get_playlist_title()
+        song = clicker.get_song_title()
+        print(title)
+        print(song)
+
         cmd = input("command: ").lower().strip()
 
         match cmd:
@@ -149,4 +188,22 @@ if __name__ == '__main__':
 
             case 'n':
                 clicker.next_song()
+
+            case 'help':
+                print("p\t\tPlay / Pause the song\n"
+                      "k\t\tPrevious song\n"
+                      "n\t\tNext song\n"
+                      "min-win\t\tminimize browser window\n"
+                      "exit\t\tExit the clicker\n\n")
+
+            case 'min-win':
+                clicker.minimize_window()
+                print("minimize browser window\n")
+
+            case 'exit':
+                print("stop process...")
+                break
+
+            case _:
+                print("try `help` to show all command\n")
 
