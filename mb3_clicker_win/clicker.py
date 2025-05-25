@@ -156,7 +156,23 @@ class Clicker:
 
 
 if __name__ == '__main__':
-    """ unit test """
+    """ unit test
+    another cmd ver.
+    """
+    import threading as td
+
+    def _msg_update(old_song_name, old_title, clicker: Clicker, event: td.Event):
+        while not event.is_set():
+            title = clicker.get_playlist_title()
+            song_name = clicker.get_song_title()
+
+            if old_title != title:
+                old_title = title
+                print(f"\n{title}\n", end='\r', flush=True)
+            if old_song_name != song_name:
+                old_song_name = song_name
+                print(f"\n{song_name}\n", end='\r', flush=True)
+
     # url = "https://www.mbplayer.com/list/182229363"
     url = "https://www.mbplayer.com/list/178091336"
     # url = "https://www.mbplayer.com/list/198715305"
@@ -169,7 +185,9 @@ if __name__ == '__main__':
 
     print("try `help` to show all command")
 
-    cmd = ""
+    _event = td.Event()
+    _msg_update_td = td.Thread(target=_msg_update,  args=("", "", clicker, _event))
+    _msg_update_td.start()
 
     while True:
         title = clicker.get_playlist_title()
@@ -193,7 +211,8 @@ if __name__ == '__main__':
                 print("p\t\tPlay / Pause the song\n"
                       "k\t\tPrevious song\n"
                       "n\t\tNext song\n"
-                      "min-win\t\tminimize browser window\n"
+                      "min-win\t\tMinimize browser window\n"
+                      "help\t\tShow all commands describe\n"
                       "exit\t\tExit the clicker\n\n")
 
             case 'min-win':
@@ -202,6 +221,10 @@ if __name__ == '__main__':
 
             case 'exit':
                 print("stop process...")
+
+                if _msg_update_td.is_alive():
+                    _event.set()
+                    _msg_update_td.join()
                 break
 
             case _:
